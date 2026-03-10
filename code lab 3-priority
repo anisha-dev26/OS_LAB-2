@@ -1,0 +1,113 @@
+#include <stdio.h>
+
+void printGanttChart(int timeline[], int process[], int len) {
+    printf("\nGantt Chart:\n");
+    for (int i = 0; i < len; i++) {
+        printf("| P%d ", process[i]);
+    }
+    printf("|\n");
+
+    
+    printf("0");
+    for (int i = 0; i < len; i++) {
+        printf("   %d", timeline[i]);
+    }
+    printf("\n");
+}
+
+void nonPreemptivePriority(int n, int at[], int bt[], int pr[]) {
+    int ct[20], tat[20], wt[20], finished[20] = {0};
+    int time = 0, completed = 0;
+    int timeline[20], process[20], len = 0;
+
+    while (completed < n) {
+        int idx = -1, minPr = 9999;
+        for (int i = 0; i < n; i++) {
+            if (!finished[i] && at[i] <= time && pr[i] < minPr) {
+                minPr = pr[i];
+                idx = i;
+            }
+        }
+        if (idx == -1) {
+            time++;
+            continue;
+        }
+        time += bt[idx];
+        ct[idx] = time;
+        tat[idx] = ct[idx] - at[idx];
+        wt[idx] = tat[idx] - bt[idx];
+        finished[idx] = 1;
+        completed++;
+
+        timeline[len] = time;
+        process[len] = idx + 1;
+        len++;
+    }
+
+    printf("\n--- Non-Preemptive Priority Scheduling ---\n");
+    printf("PID\tAT\tBT\tPR\tCT\tTAT\tWT\n");
+    for (int i = 0; i < n; i++)
+        printf("%d\t%d\t%d\t%d\t%d\t%d\t%d\n", i+1, at[i], bt[i], pr[i], ct[i], tat[i], wt[i]);
+
+    printGanttChart(timeline, process, len);
+}
+
+void preemptivePriority(int n, int at[], int bt[], int pr[]) {
+    int ct[20], tat[20], wt[20], rt[20], finished[20] = {0};
+    int time = 0, completed = 0;
+    int timeline[50], process[50], len = 0;
+
+    for (int i = 0; i < n; i++) rt[i] = bt[i];
+
+    while (completed < n) {
+        int idx = -1, minPr = 9999;
+        for (int i = 0; i < n; i++) {
+            if (!finished[i] && at[i] <= time && pr[i] < minPr) {
+                minPr = pr[i];
+                idx = i;
+            }
+        }
+        if (idx == -1) {
+            time++;
+            continue;
+        }
+        rt[idx]--;
+        time++;
+
+        timeline[len] = time;
+        process[len] = idx + 1;
+        len++;
+
+        if (rt[idx] == 0) {
+            ct[idx] = time;
+            tat[idx] = ct[idx] - at[idx];
+            wt[idx] = tat[idx] - bt[idx];
+            finished[idx] = 1;
+            completed++;
+        }
+    }
+
+    printf("\n--- Preemptive Priority Scheduling ---\n");
+    printf("PID\tAT\tBT\tPR\tCT\tTAT\tWT\n");
+    for (int i = 0; i < n; i++)
+        printf("%d\t%d\t%d\t%d\t%d\t%d\t%d\n", i+1, at[i], bt[i], pr[i], ct[i], tat[i], wt[i]);
+
+    printGanttChart(timeline, process, len);
+}
+
+int main() {
+    int n;
+    printf("Enter number of processes: ");
+    scanf("%d", &n);
+
+    int at[20], bt[20], pr[20];
+    for (int i = 0; i < n; i++) {
+        printf("Enter Arrival Time, Burst Time, Priority for P%d: ", i+1);
+        scanf("%d %d %d", &at[i], &bt[i], &pr[i]);
+    }
+
+    nonPreemptivePriority(n, at, bt, pr);
+    preemptivePriority(n, at, bt, pr);
+
+    return 0;
+}
